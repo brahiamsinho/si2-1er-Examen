@@ -13,7 +13,15 @@ export type Notificacion = {
     | "pagos";
   titulo?: string; // Añadido para compatibilidad
   tipo_display: string;
-  estado: "borrador" | "programada" | "enviada" | "cancelada" | "PENDIENTE" | "ENVIADA" | "LEIDA" | "CANCELADA"; // Ampliado para compatibilidad
+  estado:
+    | "borrador"
+    | "programada"
+    | "enviada"
+    | "cancelada"
+    | "PENDIENTE"
+    | "ENVIADA"
+    | "LEIDA"
+    | "CANCELADA"; // Ampliado para compatibilidad
   estado_display: {
     estado: string;
     color: string;
@@ -45,7 +53,7 @@ export type Notificacion = {
   destinatarios?: {
     id: number;
     nombre: string;
-  }
+  };
 };
 
 // Tipo para el formulario de notificación
@@ -86,13 +94,14 @@ export type NotificacionFilters = {
   page_size?: number; // Añadido para paginación
 };
 
-// Actualizamos PaginatedResponse para incluir total_pages
+// Actualizamos PaginatedResponse para incluir total_pages y current_page
 export type PaginatedResponse<T> = {
   count: number;
   next: string | null;
   previous: string | null;
   results: T[];
   total_pages?: number; // Añadido para compatibilidad
+  current_page?: number; // Añadido para paginación
 };
 
 // Actualizamos NotificacionEstadisticas para incluir leidas y no_leidas

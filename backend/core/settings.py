@@ -151,6 +151,9 @@ INSTALLED_APPS = [
     "unidades",
     "inventario",
     "seguridad",  # Re-habilitado para reconocimiento real
+    "pagos",  # Módulo de pagos y expensas
+    "vehiculos",  # Módulo de vehículos y reconocimiento de placas
+    "multas",  # Módulo de multas y sanciones
 ]
 
 AUTH_USER_MODEL = "users.CustomUser"

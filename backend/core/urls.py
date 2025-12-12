@@ -58,6 +58,12 @@ urlpatterns = [
     path("api/inventario/", include("inventario.urls")),
     # Unidades: gestión de unidades habitacionales
     path("api/unidades/", include("unidades.urls")),
+    # Pagos: gestión de expensas y pagos
+    path("api/pagos/", include("pagos.urls")),
+    # Vehículos: gestión de vehículos y reconocimiento de placas
+    path("api/vehiculos/", include("vehiculos.urls")),
+    # Multas: gestión de multas y sanciones
+    path("api/multas/", include("multas.urls")),
     # Seguridad: reconocimiento facial y OCR de placas
     # path("api/seguridad/", include("seguridad.urls")),  # Temporalmente deshabilitado
     # Endpoints temporales de prueba - COMENTADOS (módulo test_seguridad_simple eliminado)

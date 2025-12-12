@@ -31,7 +31,7 @@ export type Residente = {
   telefono: string;
   // Campos específicos de Residente
   unidad_habitacional: string; // Código de la unidad habitacional
-  tipo: 'propietario' | 'inquilino';
+  tipo: "propietario" | "inquilino";
   fecha_ingreso: string;
   estado: "activo" | "inactivo" | "suspendido" | "en_proceso";
   fecha_creacion: string;
@@ -120,7 +120,7 @@ export type ResidenteFormData = {
   email: string;
   telefono: string;
   unidad_habitacional: string; // Volvemos al campo original: código de unidad
-  tipo: 'propietario' | 'inquilino';
+  tipo: "propietario" | "inquilino";
   fecha_ingreso: Date | null;
   estado: "activo" | "inactivo" | "suspendido" | "en_proceso";
   usuario?: number | undefined;
@@ -154,8 +154,8 @@ export type PersonalFilters = {
 
 export type ResidenteFilters = {
   search?: string;
-  estado?: 'activo' | 'inactivo' | 'suspendido' | 'en_proceso';
-  tipo?: 'propietario' | 'inquilino';
+  estado?: "activo" | "inactivo" | "suspendido" | "en_proceso";
+  tipo?: "propietario" | "inquilino";
   unidad_habitacional?: string; // Código de la unidad habitacional
 };
 
@@ -197,17 +197,17 @@ export type ResidenteOption = {
 };
 
 // Exportar tipos de unidades
-export type { Unidad, UnidadForm, UnidadFilterParams } from './unidades';
-export type { AreaComun, AreaComunForm, EstadoArea } from './areas-comunes';
-export type { 
-  Inventario, 
-  InventarioDetallado, 
-  InventarioForm, 
+export type { Unidad, UnidadForm, UnidadFilterParams } from "./unidades";
+export type { AreaComun, AreaComunForm, EstadoArea } from "./areas-comunes";
+export type {
+  Inventario,
+  InventarioDetallado,
+  InventarioForm,
   InventarioFilter,
   EstadoInventario,
   CategoriaInventario,
-  EstadisticasInventario
-} from './inventario';
+  EstadisticasInventario,
+} from "./inventario";
 
 // Exportar tipos actualizados de notificaciones
 export type {
@@ -215,8 +215,56 @@ export type {
   NotificacionFormData,
   NotificacionFilters,
   NotificacionEstadisticas,
-  PaginatedResponse
-} from './notificaciones';
+  PaginatedResponse,
+} from "./notificaciones";
+
+// Exportar tipos de multas
+export type {
+  Multa,
+  MultaListItem,
+  MultaCreateData,
+  MultaUpdateData,
+  MarcarPagadoData,
+  CancelarMultaData,
+  EstadisticasMultas,
+  MultaFilters,
+  MultasResidenteResumen,
+  TipoMulta,
+  EstadoMulta,
+} from "./multas";
+
+export {
+  TIPO_MULTA_LABELS,
+  ESTADO_MULTA_LABELS,
+  TIPO_MULTA_COLORS,
+  ESTADO_MULTA_COLORS,
+} from "./multas";
+
+// Exportar tipos de pagos/expensas
+export type {
+  Expensa,
+  ExpensaListItem,
+  ConceptoPago,
+  Pago,
+  ExpensaCreateData,
+  ConceptoPagoInput,
+  RegistrarPagoData,
+  GenerarMasivoData,
+  EstadisticasExpensas,
+  UnidadMorosa,
+  ExpensaVencida,
+  ComprobanteData,
+  ExpensaFilters,
+  EstadoExpensa,
+  MetodoPago,
+} from "./pagos";
+
+export {
+  ESTADO_EXPENSA_LABELS,
+  ESTADO_EXPENSA_COLORS,
+  METODO_PAGO_LABELS,
+  TIPO_CONCEPTO_OPTIONS,
+} from "./pagos";
 
 export type RolOption = {
   id: number;

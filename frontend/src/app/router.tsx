@@ -21,6 +21,9 @@ import ReservasPage from "@/pages/admin/reservas/reservas.page";
 import InventarioPage from "@/pages/admin/inventario/inventario.page";
 import SeguridadSimplePage from "@/pages/admin/seguridad/seguridad-simple.page";
 import ReconocimientoFacialPage from "@/pages/admin/reconocimiento-facial.page";
+import MultasPage from "@/pages/admin/multas/multas.page";
+import PagosPage from "@/pages/admin/pagos/pagos.page";
+import VehiculosPage from "@/pages/admin/vehiculos/vehiculos.page";
 
 export default function AppRouter() {
   return (
@@ -121,6 +124,30 @@ export default function AppRouter() {
           element={
             <ProtectedRoute requireAdmin={true}>
               <UnidadesPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/multas"
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <MultasPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/pagos"
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <PagosPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/vehiculos"
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <VehiculosPage />
             </ProtectedRoute>
           }
         />

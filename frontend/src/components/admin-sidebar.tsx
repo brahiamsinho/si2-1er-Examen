@@ -17,6 +17,9 @@ import {
   Camera,
   Shield,
   Calendar,
+  AlertCircle,
+  DollarSign,
+  Car,
 } from "lucide-react";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -128,6 +131,24 @@ export default function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
           name: "Unidades Habitacionales",
           icon: Home,
           route: "/admin/unidades",
+        },
+        {
+          id: "multas",
+          name: "Multas",
+          icon: AlertCircle,
+          route: "/admin/multas",
+        },
+        {
+          id: "pagos",
+          name: "Pagos/Expensas",
+          icon: DollarSign,
+          route: "/admin/pagos",
+        },
+        {
+          id: "vehiculos",
+          name: "Vehículos",
+          icon: Car,
+          route: "/admin/vehiculos",
         },
       ],
     },
