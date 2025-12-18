@@ -37,6 +37,9 @@ venv/
 # Django build/output
 backend/staticfiles/
 backend/media/
+# Mantener estructura de directorios media
+!backend/media/.gitkeep
+!backend/media/*/
 
 # === Node / Vite ===
 node_modules/
@@ -81,11 +84,19 @@ temp/
 *.swo
 *~
 
+# === Documentos / PDFs ===
+*.pdf
+*.PDF
+
 
 # Credenciales y archivos sensibles
 .env
 backend/credentials/google-credentials.json
 CREDENCIALES_PARA_PRODUCCION.md
+
+# Modelos de DeepFace (se descargan automáticamente)
+backend/.deepface/
+backend/deepface_models/
 
 # Archivos temporales de configuración
 configurar_*.py
@@ -93,3 +104,6 @@ fix_*.py
 setup_*.py
 activar_*.py
 test_*.py
+test_*.ps1
+test_*.txt
+training_output.txt

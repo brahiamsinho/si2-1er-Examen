@@ -46,11 +46,17 @@ class MultaViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """
         Filtrar queryset según parámetros.
-        Permite filtros por: residente, tipo, estado, vencidas
+        Permite filtros por: residente, tipo, estado, vencidas.
+        Los residentes solo ven sus propias multas.
         """
         queryset = super().get_queryset()
         
-        # Filtro por residente
+        # Residentes solo ven sus propias multas
+        if hasattr(self.request.user, 'residente') and self.request.user.residente:
+            if not self.request.user.is_staff and not self.request.user.is_superuser:
+                queryset = queryset.filter(residente=self.request.user.residente)
+        
+        # Filtro adicional por residente (para admins)
         residente_id = self.request.query_params.get('residente')
         if residente_id:
             queryset = queryset.filter(residente_id=residente_id)

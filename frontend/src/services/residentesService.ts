@@ -37,6 +37,8 @@ const toDTO = (data: ResidenteFormData) => {
     dto.usuario = data.usuario;
   }
   
+  // No incluir foto_perfil en el DTO - se enviará por FormData
+  
   return dto;
 };
 
@@ -55,6 +57,7 @@ const fromDTO = (data: any): Residente => ({
   fecha_creacion: data.fecha_creacion,
   fecha_actualizacion: data.fecha_actualizacion,
   usuario: data.usuario,
+  foto_perfil: data.foto_perfil || null,
   // Campos del usuario relacionado
   username: data.username,
   // Campos calculados/derivados
@@ -117,6 +120,40 @@ export const residentesApi = {
   async create(data: ResidenteFormData): Promise<ApiResponse<Residente>> {
     const dto = toDTO(data);
     
+    // Si hay foto, usar FormData para multipart/form-data
+    if (data.foto_perfil) {
+      const formData = new FormData();
+      
+      // Agregar campos del DTO al FormData
+      Object.keys(dto).forEach(key => {
+        if (dto[key] !== null && dto[key] !== undefined) {
+          formData.append(key, dto[key]);
+        }
+      });
+      
+      // Agregar archivo de foto
+      formData.append('foto_perfil', data.foto_perfil);
+      
+      const response = await apiRequest('/api/residentes/', {
+        method: 'POST',
+        body: formData,
+        // No enviar Content-Type header, el navegador lo configurará automáticamente
+        headers: {
+          // Eliminar Content-Type para que el navegador agregue boundary
+        },
+      });
+      
+      if (response.success && response.data) {
+        return {
+          success: true,
+          data: fromDTO(response.data),
+        };
+      }
+      
+      return response as ApiResponse<Residente>;
+    }
+    
+    // Sin foto, usar JSON normal
     const response = await apiRequest('/api/residentes/', {
       method: 'POST',
       body: JSON.stringify(dto),
@@ -136,11 +173,49 @@ export const residentesApi = {
   async update(id: number, data: ResidenteFormData): Promise<ApiResponse<Residente>> {
     const dto = toDTO(data);
     
-    // Usar PUT en lugar de PATCH para asegurarnos que todos los campos se envíen
+    // Si hay foto (y es un archivo File, no una URL string), usar FormData para multipart/form-data
+    if (data.foto_perfil && data.foto_perfil instanceof File) {
+      const formData = new FormData();
+      
+      // Agregar campos del DTO al FormData (EXCEPTO foto_perfil)
+      Object.keys(dto).forEach(key => {
+        // Excluir foto_perfil del DTO porque lo agregaremos como File después
+        if (key === 'foto_perfil') return;
+        
+        const value = dto[key];
+        if (value !== null && value !== undefined) {
+          // Convertir a string si es necesario
+          formData.append(key, typeof value === 'string' ? value : String(value));
+        }
+      });
+      
+      // Agregar archivo de foto como File (no como string)
+      formData.append('foto_perfil', data.foto_perfil);
+      
+      const response = await apiRequest(`/api/residentes/${id}/`, {
+        method: 'PUT',
+        body: formData,
+        headers: {
+          // Eliminar Content-Type para que el navegador agregue boundary
+        },
+      });
+      
+      if (response.success && response.data) {
+        return {
+          success: true,
+          data: fromDTO(response.data),
+        };
+      }
+      
+      return response as ApiResponse<Residente>;
+    }
+    
+    // Sin foto nueva, usar JSON normal con PUT
     const response = await apiRequest(`/api/residentes/${id}/`, {
       method: 'PUT',
       body: JSON.stringify(dto),
     });
+    
     if (response.success && response.data) {
       return {
         success: true,

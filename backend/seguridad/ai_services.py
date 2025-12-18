@@ -345,33 +345,25 @@ class SeguridadAIService:
     def procesar_reconocimiento_placa(self, imagen_bytes: bytes) -> Dict[str, Any]:
         """Procesa reconocimiento de placa completo"""
         try:
-            # Extraer texto de la placa
-            resultado_ocr = self.google_service.extraer_texto_placa(imagen_bytes)
-
-            if not resultado_ocr["exito"]:
-                return {
-                    "exito": False,
-                    "mensaje": resultado_ocr.get("mensaje", "Error en OCR"),
-                }
-
-            placa_detectada = resultado_ocr["placa_detectada"]
+            # Usar AIOrchestrator con fallback automático a Tesseract
+            from .ai_orchestrator import get_orchestrator
+            
+            orchestrator = get_orchestrator()
+            placa_detectada, confidence = orchestrator.read_plate(image_bytes=imagen_bytes)
+            
             if not placa_detectada:
                 return {
                     "exito": False,
-                    "mensaje": "No se detectó una placa válida",
-                    "texto_detectado": resultado_ocr["texto_completo"],
+                    "mensaje": "No se pudo detectar una placa válida en la imagen",
                 }
-
-            # Detectar tipo de vehículo
-            resultado_vehiculo = self.google_service.detectar_vehiculo(imagen_bytes)
 
             return {
                 "exito": True,
                 "placa": placa_detectada,
-                "confidence": resultado_ocr["confidence_promedio"],
-                "coordenadas": resultado_ocr["coordenadas"],
-                "vehiculos_detectados": resultado_vehiculo.get("vehiculos", []),
-                "texto_completo": resultado_ocr["texto_completo"],
+                "confidence": confidence,
+                "coordenadas": [],
+                "vehiculos_detectados": [],
+                "texto_completo": placa_detectada,
             }
 
         except Exception as e:

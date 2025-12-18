@@ -1,10 +1,12 @@
 from django.contrib import admin
+from django.utils.html import format_html
 from .models import Residente
 
 
 @admin.register(Residente)
 class ResidenteAdmin(admin.ModelAdmin):
     list_display = [
+        'foto_thumbnail',
         'nombre_completo',
         'unidad_habitacional',
         'tipo',
@@ -32,12 +34,35 @@ class ResidenteAdmin(admin.ModelAdmin):
     
     readonly_fields = [
         'fecha_creacion',
-        'fecha_actualizacion'
+        'fecha_actualizacion',
+        'foto_preview'
     ]
+    
+    def foto_thumbnail(self, obj):
+        """Muestra un thumbnail de la foto en el listado"""
+        if obj.foto_perfil:
+            return format_html(
+                '<img src="{}" width="50" height="50" style="border-radius: 50%; object-fit: cover;" />',
+                obj.foto_perfil.url
+            )
+        return format_html('<span style="color: #999;">Sin foto</span>')
+    foto_thumbnail.short_description = 'Foto'
+    
+    def foto_preview(self, obj):
+        """Muestra un preview más grande de la foto en el detalle"""
+        if obj.foto_perfil:
+            return format_html(
+                '<img src="{}" width="200" height="200" style="border-radius: 10px; object-fit: cover;" />',
+                obj.foto_perfil.url
+            )
+        return format_html('<p style="color: #999;">No hay foto de perfil</p>')
+    foto_preview.short_description = 'Vista Previa de Foto'
     
     fieldsets = [
         ('Información Personal', {
             'fields': (
+                'foto_perfil',
+                'foto_preview',
                 'nombre', 
                 'apellido', 
                 'ci', 

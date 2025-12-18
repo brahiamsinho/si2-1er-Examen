@@ -1,14 +1,26 @@
 /// Configuración de la aplicación
 class AppConfig {
   // URLs del backend
-  static const String _localUrl = "http://10.0.2.2:8000";
+  // IMPORTANTE: Para depuración inalámbrica desde teléfono físico,
+  // usa tu IP local (la de tu computadora en la red WiFi)
+  static const String _physicalDeviceUrl = "http://192.168.0.143:8000"; // Tu IP local
+  static const String _emulatorUrl = "http://10.0.2.2:8000"; // IP especial del emulador Android
   static const String _cloudUrl = "http://3.230.69.204:8000";
   
-  // Cambiar esta variable para alternar entre local y nube
-  static const bool _useCloudBackend = false; // Temporalmente local hasta que se actualice la nube
+  // Cambiar esta variable según el entorno de pruebas
+  static const _BackendMode _backendMode = _BackendMode.physicalDevice;
   
   /// URL base de la API
-  static String get apiBaseUrl => _useCloudBackend ? _cloudUrl : _localUrl;
+  static String get apiBaseUrl {
+    switch (_backendMode) {
+      case _BackendMode.physicalDevice:
+        return _physicalDeviceUrl;
+      case _BackendMode.emulator:
+        return _emulatorUrl;
+      case _BackendMode.cloud:
+        return _cloudUrl;
+    }
+  }
   
   /// URL completa de la API con el prefijo /api
   static String get apiUrl => "$apiBaseUrl/api";
@@ -29,7 +41,16 @@ class AppConfig {
   static const bool isDebugMode = true;
   
   /// Información del entorno actual
-  static String get environmentInfo => _useCloudBackend ? "Nube" : "Local";
+  static String get environmentInfo {
+    switch (_backendMode) {
+      case _BackendMode.physicalDevice:
+        return "Dispositivo físico";
+      case _BackendMode.emulator:
+        return "Emulador";
+      case _BackendMode.cloud:
+        return "Nube";
+    }
+  }
   
   /// Método para obtener información de configuración
   static Map<String, dynamic> getConfigInfo() {
@@ -44,7 +65,14 @@ class AppConfig {
   }
 }
 
-/// Enum para diferentes entornos
+/// Enum para modo de backend
+enum _BackendMode {
+  physicalDevice, // Teléfono físico conectado por WiFi
+  emulator,       // Emulador Android
+  cloud,          // Servidor en la nube
+}
+
+/// Enum para diferentes entornos (legacy)
 enum Environment {
   local,
   cloud,

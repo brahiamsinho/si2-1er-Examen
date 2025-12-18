@@ -7,6 +7,7 @@ import { useVehiculos } from "@/hooks/use-vehiculos";
 import { Filters } from "./components/filters";
 import { VehiculosTable } from "./components/table";
 import { CreateEditDialog } from "./components/create-dialog";
+import AdminLayout from "@/app/layout/admin-layout";
 import type {
   Vehiculo,
   VehiculoFilters,
@@ -99,8 +100,9 @@ export default function VehiculosPage() {
   const totalPages = Math.ceil(data.count / (filters.page_size || 10));
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <AdminLayout>
+      <div className="container mx-auto py-6 space-y-6">
+        <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Car className="h-6 w-6" />
           <h1 className="text-3xl font-bold">Gestión de Vehículos</h1>
@@ -206,6 +208,7 @@ export default function VehiculosPage() {
         description="¿Está seguro que desea eliminar este vehículo? Esta acción no se puede deshacer."
         isLoading={isLoading}
       />
-    </div>
+      </div>
+    </AdminLayout>
   );
 }

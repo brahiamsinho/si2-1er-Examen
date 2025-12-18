@@ -34,6 +34,7 @@ from .serializers import (
     ReconocimientoPlacaSerializer,
     RespuestaReconocimientoSerializer,
 )
+from vehiculos.models import Vehiculo
 from .ai_services import seguridad_ai
 from users.decorators import requiere_permisos
 from bitacora.utils import registrar_bitacora
@@ -420,18 +421,88 @@ def procesar_reconocimiento_placa(request):
 
         placa_detectada = resultado_ia["placa"]
 
-        # Buscar vehículo en la base de datos
+        # Normalizar la placa detectada (mayúsculas, sin espacios ni guiones)
+        placa_normalizada = placa_detectada.upper().strip().replace(' ', '').replace('-', '')
+
+        # Buscar vehículo en la base de datos principal (módulo vehiculos)
+        vehiculo_encontrado = None
+        vehiculo_info = None
         try:
-            vehiculo = VehiculoAutorizado.objects.get(placa=placa_detectada)
+            # Buscar vehículo usando select_related para optimizar consultas
+            vehiculo_encontrado = Vehiculo.objects.select_related(
+                'residente', 
+                'residente__usuario', 
+                'unidad'
+            ).get(
+                Q(placa__iexact=placa_normalizada) | 
+                Q(placa__iexact=placa_detectada)
+            )
+            
+            # Preparar información detallada del vehículo (compatible con frontend)
+            vehiculo_info = {
+                'id': vehiculo_encontrado.id,
+                'placa': vehiculo_encontrado.placa,
+                'marca': vehiculo_encontrado.marca,
+                'modelo': vehiculo_encontrado.modelo,
+                'color': vehiculo_encontrado.color,
+                'anio': vehiculo_encontrado.año,
+                'tipo_vehiculo': vehiculo_encontrado.tipo,
+                'foto_vehiculo': vehiculo_encontrado.foto_vehiculo.url if vehiculo_encontrado.foto_vehiculo else None,
+                'estado': vehiculo_encontrado.estado,
+                'fecha_registro': vehiculo_encontrado.fecha_registro.isoformat() if vehiculo_encontrado.fecha_registro else None,
+            }
+            
+            # Agregar información del residente si existe
+            # IMPORTANTE: El frontend TypeScript espera que si hay 'residente', 
+            # también SIEMPRE exista 'residente.unidad'. Solo incluimos residente 
+            # si tenemos AMBOS (residente Y unidad).
+            if vehiculo_encontrado.residente and vehiculo_encontrado.unidad:
+                # Obtener nombre y apellido del residente
+                residente_usuario = vehiculo_encontrado.residente.usuario if hasattr(vehiculo_encontrado.residente, 'usuario') and vehiculo_encontrado.residente.usuario else None
+                
+                if residente_usuario:
+                    nombre = residente_usuario.first_name or ''
+                    apellido = residente_usuario.last_name or ''
+                else:
+                    # Fallback: usar el nombre completo del residente
+                    nombre_completo = str(vehiculo_encontrado.residente)
+                    partes = nombre_completo.split(' ', 1)
+                    nombre = partes[0] if len(partes) > 0 else ''
+                    apellido = partes[1] if len(partes) > 1 else ''
+                
+                vehiculo_info['residente'] = {
+                    'id': vehiculo_encontrado.residente.id,
+                    'nombre': nombre,
+                    'apellido': apellido,
+                    'ci': vehiculo_encontrado.residente.ci if hasattr(vehiculo_encontrado.residente, 'ci') else None,
+                    'unidad': {
+                        'numero_unidad': vehiculo_encontrado.unidad.numero if hasattr(vehiculo_encontrado.unidad, 'numero') else str(vehiculo_encontrado.unidad),
+                        'bloque': vehiculo_encontrado.unidad.bloque if hasattr(vehiculo_encontrado.unidad, 'bloque') else None,
+                    }
+                }
+            
             resultado = "exitoso"
-        except VehiculoAutorizado.DoesNotExist:
-            vehiculo = None
-            resultado = "no_autorizado"
+            
+        except Vehiculo.DoesNotExist:
+            # Si no existe en el módulo vehiculos, buscar en VehiculoAutorizado (retrocompatibilidad)
+            try:
+                vehiculo_autorizado = VehiculoAutorizado.objects.get(placa=placa_detectada)
+                resultado = "exitoso"
+                vehiculo_info = VehiculoAutorizadoSerializer(vehiculo_autorizado).data
+            except VehiculoAutorizado.DoesNotExist:
+                resultado = "no_autorizado"
+        except Vehiculo.MultipleObjectsReturned:
+            # Si hay múltiples vehículos con la misma placa (no debería pasar por unique=True)
+            vehiculo_encontrado = Vehiculo.objects.filter(
+                Q(placa__iexact=placa_normalizada) | 
+                Q(placa__iexact=placa_detectada)
+            ).first()
+            resultado = "exitoso"
 
         # Crear registro de vehículo
         registro = RegistroVehiculo.objects.create(
             placa=placa_detectada,
-            vehiculo=vehiculo,
+            vehiculo=None,  # RegistroVehiculo usa VehiculoAutorizado, no Vehiculo
             tipo_vehiculo=resultado_ia.get("vehiculos_detectados", [{}])[0].get(
                 "tipo", "auto"
             )
@@ -470,9 +541,9 @@ def procesar_reconocimiento_placa(request):
                 "exito": True,
                 "mensaje": f"Placa detectada: {placa_detectada}",
                 "placa_detectada": placa_detectada,
-                "vehiculo_detectado": VehiculoAutorizadoSerializer(vehiculo).data
-                if vehiculo
-                else None,
+                "vehiculo": vehiculo_info if vehiculo_encontrado else None,
+                "esta_registrado": vehiculo_encontrado is not None,
+                "vehiculo_activo": vehiculo_encontrado.esta_activo if vehiculo_encontrado else False,
                 "registro_id": registro.id,
                 "confianza": resultado_ia["confidence"],
                 "alerta_generada": alerta_generada,

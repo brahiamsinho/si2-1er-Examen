@@ -21,9 +21,12 @@ import ReservasPage from "@/pages/admin/reservas/reservas.page";
 import InventarioPage from "@/pages/admin/inventario/inventario.page";
 import SeguridadSimplePage from "@/pages/admin/seguridad/seguridad-simple.page";
 import ReconocimientoFacialPage from "@/pages/admin/reconocimiento-facial.page";
+import ReconocimientoPlacasPage from "@/pages/admin/reconocimiento-placas.page";
 import MultasPage from "@/pages/admin/multas/multas.page";
 import PagosPage from "@/pages/admin/pagos/pagos.page";
 import VehiculosPage from "@/pages/admin/vehiculos/vehiculos.page";
+import MantenimientoPage from "@/pages/admin/mantenimiento/mantenimiento.page";
+import DashboardPage from "@/pages/admin/dashboard.page";
 
 export default function AppRouter() {
   return (
@@ -78,6 +81,14 @@ export default function AppRouter() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/admin/dashboard"
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
 
         <Route
           path="/admin/residentes"
@@ -112,14 +123,6 @@ export default function AppRouter() {
           }
         />
         <Route
-          path="/admin/mantenimiento"
-          element={
-            <ProtectedRoute requireAdmin={true}>
-              <div>Mantenimiento (por implementar)</div>
-            </ProtectedRoute>
-          }
-        />
-        <Route
           path="/admin/unidades"
           element={
             <ProtectedRoute requireAdmin={true}>
@@ -148,6 +151,14 @@ export default function AppRouter() {
           element={
             <ProtectedRoute requireAdmin={true}>
               <VehiculosPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/mantenimiento"
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <MantenimientoPage />
             </ProtectedRoute>
           }
         />
@@ -188,6 +199,14 @@ export default function AppRouter() {
           element={
             <ProtectedRoute requireAdmin={true}>
               <ReconocimientoFacialPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/reconocimiento-placas"
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <ReconocimientoPlacasPage />
             </ProtectedRoute>
           }
         />

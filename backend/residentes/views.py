@@ -1,6 +1,7 @@
 from rest_framework import viewsets, status, permissions, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db import models
 from django.utils import timezone
@@ -20,6 +21,7 @@ class ResidenteViewSet(viewsets.ModelViewSet):
     queryset = Residente.objects.all()
     serializer_class = ResidenteSerializer
     permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     # Campos válidos para filtrado/búsqueda/ordenamiento
     filterset_fields = ["estado", "tipo", "usuario", "unidad_habitacional"]

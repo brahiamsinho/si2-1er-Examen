@@ -17,21 +17,18 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
 from users.auth_views import logout_view
-# import test_seguridad_simple  # Módulo eliminado - comentado temporalmente
-from seguridad.facial_recognition_views import (
-    detect_faces,
-    register_face,
-    recognize_face,
-    list_registered_faces,
-    delete_face,
-)
+from core.dashboard_views import dashboard_stats
 
 
 # Endpoints principales del sistema
 urlpatterns = [
     # Panel de administración de Django
     path("admin/", admin.site.urls),
+    # Dashboard: estadísticas consolidadas
+    path("api/dashboard/stats/", dashboard_stats, name="dashboard-stats"),
     # ENDPOINTS DE API (todos bajo /api/)
     # Auth: login/logout/password/reset para clientes
     # Ruta personalizada para logout
@@ -64,50 +61,15 @@ urlpatterns = [
     path("api/vehiculos/", include("vehiculos.urls")),
     # Multas: gestión de multas y sanciones
     path("api/multas/", include("multas.urls")),
-    # Seguridad: reconocimiento facial y OCR de placas
-    # path("api/seguridad/", include("seguridad.urls")),  # Temporalmente deshabilitado
-    # Endpoints temporales de prueba - COMENTADOS (módulo test_seguridad_simple eliminado)
-    # path(
-    #     "api/seguridad/reconocimiento-placa/",
-    #     test_seguridad_simple.test_plate_recognition,
-    #     name="test-plate-recognition",
-    # ),
-    # path(
-    #     "api/seguridad/personas/",
-    #     test_seguridad_simple.handle_personas,
-    #     name="handle-personas",
-    # ),
-    # path(
-    #     "api/seguridad/vehiculos/",
-    #     test_seguridad_simple.handle_vehiculos,
-    #     name="handle-vehiculos",
-    # ),
-    # Reconocimiento facial con AWS Rekognition
-    path(
-        "api/seguridad/detectar-caras/",
-        detect_faces,
-        name="detect-faces",
-    ),
-    path(
-        "api/seguridad/registrar-cara/",
-        register_face,
-        name="register-face",
-    ),
-    path(
-        "api/seguridad/reconocer-cara/",
-        recognize_face,
-        name="recognize-face",
-    ),
-    path(
-        "api/seguridad/caras-registradas/",
-        list_registered_faces,
-        name="list-faces",
-    ),
-    path(
-        "api/seguridad/eliminar-cara/",
-        delete_face,
-        name="delete-face",
-    ),
+    # Mantenimiento: gestión de tareas de mantenimiento
+    path("api/mantenimiento/", include("mantenimiento.urls")),
+    # Seguridad: reconocimiento facial, OCR de placas, y gestión de accesos
+    path("api/seguridad/", include("seguridad.urls")),
     # Auth social: endpoints para login social (navegador)
     path("accounts/", include("allauth.urls")),
 ]
+
+# Servir archivos media en desarrollo
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

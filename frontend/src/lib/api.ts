@@ -57,9 +57,15 @@ export const api = axios.create({
 // Interceptor para requests - agregar headers necesarios
 api.interceptors.request.use(
   (config) => {
-    // Asegurar que Content-Type esté presente
-    if (!config.headers["Content-Type"]) {
+    // Solo establecer Content-Type si NO es FormData
+    // FormData establece automáticamente multipart/form-data con boundary
+    if (!config.headers["Content-Type"] && !(config.data instanceof FormData)) {
       config.headers["Content-Type"] = "application/json";
+    }
+    
+    // Si es FormData, eliminar Content-Type para que el navegador lo configure automáticamente
+    if (config.data instanceof FormData) {
+      delete config.headers["Content-Type"];
     }
 
     // 🔑 AGREGAR TOKEN DE AUTENTICACIÓN AUTOMÁTICAMENTE

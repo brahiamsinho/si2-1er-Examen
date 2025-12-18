@@ -17,6 +17,7 @@ import { RegistrarPagoModal } from "./components/registrar-pago";
 import { ComprobanteModal } from "./components/comprobante";
 import { MorosidadModal } from "./components/morosidad";
 import { DeleteModal } from "./components/delete";
+import AdminLayout from "@/app/layout/admin-layout";
 
 export default function PagosPage() {
   const {
@@ -103,9 +104,10 @@ export default function PagosPage() {
   };
 
   return (
-    <div className="space-y-6 p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <AdminLayout>
+      <div className="space-y-6 p-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
             Pagos y Expensas
@@ -267,6 +269,7 @@ export default function PagosPage() {
         item={selectedItem}
         onConfirm={deleteItem}
       />
-    </div>
+      </div>
+    </AdminLayout>
   );
 }

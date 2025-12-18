@@ -50,8 +50,8 @@ class VehiculoViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = super().get_queryset()
         
-        # Si es residente, solo ver sus propios vehículos
-        if hasattr(self.request.user, 'residente'):
+        # Si es residente (y NO es admin/staff), solo ver sus propios vehículos
+        if hasattr(self.request.user, 'residente') and not self.request.user.is_staff:
             queryset = queryset.filter(residente=self.request.user.residente)
         
         # Filtros adicionales

@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -129,6 +130,7 @@ export function ResidenteTable({
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>Foto</TableHead>
               <TableHead>Nombre Completo</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Teléfono</TableHead>
@@ -143,6 +145,14 @@ export function ResidenteTable({
           <TableBody>
             {data.map((residente) => (
               <TableRow key={residente.id}>
+                <TableCell>
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={residente.foto_perfil || undefined} alt={residente.nombre_completo} />
+                    <AvatarFallback>
+                      {residente.nombre.charAt(0)}{residente.apellido.charAt(0)}
+                    </AvatarFallback>
+                  </Avatar>
+                </TableCell>
                 <TableCell className="font-medium">
                   {residente.nombre} {residente.apellido}
                 </TableCell>

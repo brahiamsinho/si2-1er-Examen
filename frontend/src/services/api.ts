@@ -94,9 +94,12 @@ export async function apiRequest<T>(
     headers.Authorization = `Bearer ${token}`;
   }
 
+  // Si el body es FormData, no agregar Content-Type (Axios lo maneja automáticamente)
+  const isFormData = options.body instanceof FormData;
+
   const config = {
     method: options.method || "GET",
-    headers,
+    headers: isFormData ? { Authorization: headers.Authorization } : headers,
     data: options.body,
   };
 

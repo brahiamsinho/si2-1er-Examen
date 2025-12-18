@@ -40,8 +40,8 @@ const vehiculoSchema = z.object({
   placa: z
     .string()
     .min(1, "La placa es requerida")
-    .regex(/^[A-Z]{3}-?\d{4}$/, "Formato inválido. Use: ABC-1234 o ABC1234")
-    .transform((val) => val.toUpperCase()),
+    .regex(/^\d{4}[-\s]?[A-Z]{3}$/i, "Formato inválido. Use: 1234ABC o 1234-ABC")
+    .transform((val) => val.toUpperCase().replace(/[-\s]/g, '')),
   tipo: z.enum(["auto", "moto", "camioneta", "suv", "otro"], {
     required_error: "Seleccione un tipo de vehículo",
   }),
@@ -83,8 +83,8 @@ export function CreateEditDialog({
   vehiculo,
   isLoading,
 }: CreateEditDialogProps) {
-  const { residentes, cargarResidentes } = useResidentes();
-  const { unidades, loadUnidades } = useUnidades();
+  const { data: residentesData, loadData: loadResidentes } = useResidentes();
+  const { data: unidadesData, loadData: loadUnidades } = useUnidades();
   const [selectedResidente, setSelectedResidente] = useState<number | null>(
     null
   );
@@ -108,9 +108,9 @@ export function CreateEditDialog({
   });
 
   useEffect(() => {
-    cargarResidentes();
+    loadResidentes();
     loadUnidades();
-  }, [cargarResidentes, loadUnidades]);
+  }, [loadResidentes, loadUnidades]);
 
   useEffect(() => {
     if (vehiculo) {
@@ -160,6 +160,7 @@ export function CreateEditDialog({
     form.setValue("residente", residenteId);
 
     // Auto-seleccionar la primera unidad del residente
+    const residentes = residentesData?.results || [];
     const residente = residentes.find((r) => r.id === residenteId);
     if (residente && residente.unidades && residente.unidades.length > 0) {
       form.setValue("unidad", residente.unidades[0].id);
@@ -167,6 +168,7 @@ export function CreateEditDialog({
   };
 
   // Filtrar unidades del residente seleccionado
+  const residentes = residentesData?.results || [];
   const unidadesDisponibles = selectedResidente
     ? residentes.find((r) => r.id === selectedResidente)?.unidades || []
     : [];
@@ -200,7 +202,7 @@ export function CreateEditDialog({
                     <FormLabel>Placa *</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="ABC-1234"
+                        placeholder="1852PHD"
                         {...field}
                         onChange={(e) =>
                           field.onChange(e.target.value.toUpperCase())
@@ -325,7 +327,7 @@ export function CreateEditDialog({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {residentes.map((residente) => (
+                        {(residentesData?.results || []).map((residente) => (
                           <SelectItem
                             key={residente.id}
                             value={String(residente.id)}

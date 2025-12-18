@@ -32,7 +32,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { DatePicker } from '@/components/date-picker';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Upload, X, User } from 'lucide-react';
 import type { Residente } from '@/types';
 import type { Unidad } from '@/types/unidades';
 import { toast } from 'sonner';
@@ -78,6 +78,10 @@ export function ResidenteStore({
   // Estado para almacenar las unidades habitacionales disponibles
   const [unidades, setUnidades] = useState<Unidad[]>([]);
   const [loadingUnidades, setLoadingUnidades] = useState(false);
+  
+  // Estado para preview de foto
+  const [fotoPreview, setFotoPreview] = useState<string | null>(null);
+  const [fotoFile, setFotoFile] = useState<File | null>(null);
 
   const form = useForm<ResidenteFormValues>({
     resolver: zodResolver(residenteSchema),
@@ -143,6 +147,14 @@ export function ResidenteStore({
         estado: initialData.estado,
         usuario: initialData.usuario,
       });
+      
+      // Establecer preview de foto existente
+      if (initialData.foto_perfil) {
+        setFotoPreview(initialData.foto_perfil);
+      } else {
+        setFotoPreview(null);
+      }
+      setFotoFile(null);
     } else if (isOpen && !initialData) {
       // Resetear formulario para crear nuevo
       form.reset({
@@ -156,6 +168,8 @@ export function ResidenteStore({
         fecha_ingreso: null,
         estado: 'activo',
       });
+      setFotoPreview(null);
+      setFotoFile(null);
     }
   }, [isOpen, initialData, form]);
 
@@ -177,12 +191,21 @@ export function ResidenteStore({
       // Agregar indicador visual - usaremos el estado loading
       toast.loading(isEdit ? 'Actualizando...' : 'Creando...', { id: 'submitToast' });
       
+      // Agregar foto SOLO si hay un archivo nuevo (File object)
+      const dataWithPhoto: any = { ...data };
+      if (fotoFile instanceof File) {
+        dataWithPhoto.foto_perfil = fotoFile;
+      }
+      // Si no hay archivo nuevo, NO incluir el campo foto_perfil
+      
       // Llamar a la función onSubmit proporcionada por el componente padre
-      const success = await onSubmit(data);
+      const success = await onSubmit(dataWithPhoto);
       
       if (success) {
         toast.success(isEdit ? 'Residente actualizado exitosamente' : 'Residente creado exitosamente', { id: 'submitToast' });
         form.reset();
+        setFotoPreview(null);
+        setFotoFile(null);
         onClose();
       } else {
         // Feedback si no se pudo guardar
@@ -193,8 +216,43 @@ export function ResidenteStore({
     }
   };
 
+  const handleFotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validar tipo de archivo
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+    if (!validTypes.includes(file.type)) {
+      toast.error('Solo se permiten archivos JPG y PNG');
+      return;
+    }
+
+    // Validar tamaño (máximo 5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      toast.error('La imagen no puede superar los 5MB');
+      return;
+    }
+
+    // Crear preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFotoPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+    
+    setFotoFile(file);
+  };
+
+  const handleRemoveFoto = () => {
+    setFotoPreview(null);
+    setFotoFile(null);
+  };
+
   const handleClose = () => {
     form.reset();
+    setFotoPreview(null);
+    setFotoFile(null);
     onClose();
   };
 
@@ -341,6 +399,57 @@ export function ResidenteStore({
               </div>
             </div>
 
+            {/* Foto de Perfil */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Foto de Perfil</h3>
+              <div className="flex flex-col items-center gap-4">
+                {/* Preview de la foto */}
+                <div className="relative">
+                  {fotoPreview ? (
+                    <div className="relative">
+                      <img
+                        src={fotoPreview}
+                        alt="Preview"
+                        className="w-32 h-32 rounded-full object-cover border-4 border-gray-200"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleRemoveFoto}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="w-32 h-32 rounded-full bg-gray-100 flex items-center justify-center border-4 border-gray-200">
+                      <User className="h-16 w-16 text-gray-400" />
+                    </div>
+                  )}
+                </div>
+
+                {/* Input de foto */}
+                <div className="flex flex-col items-center gap-2">
+                  <Label 
+                    htmlFor="foto_perfil" 
+                    className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+                  >
+                    <Upload className="h-4 w-4" />
+                    {fotoPreview ? 'Cambiar Foto' : 'Subir Foto'}
+                  </Label>
+                  <Input
+                    id="foto_perfil"
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png"
+                    onChange={handleFotoChange}
+                    className="hidden"
+                  />
+                  <p className="text-xs text-muted-foreground text-center">
+                    JPG o PNG, máximo 5MB
+                  </p>
+                </div>
+              </div>
+            </div>
+
             {/* Información de Residencia */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium">Información de Residencia</h3>
@@ -451,7 +560,7 @@ export function ResidenteStore({
                   const otherErrors = Object.keys(form.formState.errors).filter(k => k !== 'usuario').length > 0;
                   
                   if (isValid || (userError && !otherErrors)) {
-                    // Procesar manualmente con datos limpios
+                    // Procesar manualmente con datos limpios incluyendo foto
                     await handleSubmit({
                       nombre: values.nombre,
                       apellido: values.apellido,
@@ -462,7 +571,8 @@ export function ResidenteStore({
                       tipo: values.tipo as 'propietario' | 'inquilino',
                       fecha_ingreso: values.fecha_ingreso,
                       estado: values.estado as 'activo' | 'inactivo' | 'suspendido' | 'en_proceso',
-                      usuario: values.usuario
+                      usuario: values.usuario,
+                      foto_perfil: fotoFile
                     });
                   } else {
                     toast.error('Por favor corrige los errores en el formulario');

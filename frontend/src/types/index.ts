@@ -37,6 +37,7 @@ export type Residente = {
   fecha_creacion: string;
   fecha_actualizacion: string;
   usuario?: number; // FK a CustomUser (nullable)
+  foto_perfil?: string | null; // URL de la foto de perfil
   // Campos del usuario relacionado
   username?: string;
   // Campos calculados/derivados
@@ -124,6 +125,7 @@ export type ResidenteFormData = {
   fecha_ingreso: Date | null;
   estado: "activo" | "inactivo" | "suspendido" | "en_proceso";
   usuario?: number | undefined;
+  foto_perfil?: File | null | undefined; // Archivo de imagen para upload
 };
 
 export type UsuarioFormData = {

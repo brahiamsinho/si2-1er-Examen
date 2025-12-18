@@ -20,6 +20,7 @@ import {
   AlertCircle,
   DollarSign,
   Car,
+  Wrench,
 } from "lucide-react";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -150,6 +151,12 @@ export default function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
           icon: Car,
           route: "/admin/vehiculos",
         },
+        {
+          id: "mantenimiento",
+          name: "Mantenimiento",
+          icon: Wrench,
+          route: "/admin/mantenimiento",
+        },
       ],
     },
     {
@@ -205,6 +212,12 @@ export default function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
           name: "Reconocimiento Facial",
           icon: Camera,
           route: "/admin/reconocimiento-facial",
+        },
+        {
+          id: "reconocimiento-placas",
+          name: "Reconocimiento de Placas",
+          icon: Car,
+          route: "/admin/reconocimiento-placas",
         },
       ],
     },

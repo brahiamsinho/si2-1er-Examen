@@ -6,7 +6,7 @@ from residentes.models import Residente
 class VehiculoSerializer(serializers.ModelSerializer):
     """Serializer completo para vehículos"""
     
-    residente_nombre = serializers.CharField(source='residente_nombre', read_only=True)
+    residente_nombre = serializers.CharField(read_only=True)
     unidad_codigo = serializers.CharField(source='unidad.codigo', read_only=True)
     tipo_display = serializers.CharField(source='get_tipo_display', read_only=True)
     estado_display = serializers.CharField(source='get_estado_display', read_only=True)
@@ -28,7 +28,7 @@ class VehiculoSerializer(serializers.ModelSerializer):
 class VehiculoListSerializer(serializers.ModelSerializer):
     """Serializer simplificado para listados"""
     
-    residente_nombre = serializers.CharField(source='residente_nombre', read_only=True)
+    residente_nombre = serializers.CharField(read_only=True)
     unidad_codigo = serializers.CharField(source='unidad.codigo', read_only=True)
     tipo_display = serializers.CharField(source='get_tipo_display', read_only=True)
     esta_activo = serializers.BooleanField(read_only=True)
@@ -54,15 +54,15 @@ class VehiculoCreateSerializer(serializers.ModelSerializer):
         ]
     
     def validate_placa(self, value):
-        """Validar formato de placa"""
+        """Validar formato de placa boliviana"""
         import re
-        # Normalizar: mayúsculas, sin espacios
-        placa_normalizada = value.upper().strip().replace(' ', '')
+        # Normalizar: mayúsculas, sin espacios ni guiones
+        placa_normalizada = value.upper().strip().replace(' ', '').replace('-', '')
         
-        # Validar formato: ABC-1234 o ABC1234
-        if not re.match(r'^[A-Z]{3}-?\d{4}$', placa_normalizada):
+        # Validar formato boliviano: 1234ABC (4 dígitos + 3 letras)
+        if not re.match(r'^\d{4}[A-Z]{3}$', placa_normalizada):
             raise serializers.ValidationError(
-                "Formato de placa inválido. Use: ABC-1234 o ABC1234"
+                "Formato de placa inválido. Use: 1234ABC o 1234-ABC (ej: 1852PHD)"
             )
         
         return placa_normalizada

@@ -1,7 +1,14 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+import os
 
 User = get_user_model()
+
+
+def residente_foto_path(instance, filename):
+    """Genera el path para guardar la foto del residente"""
+    ext = filename.split('.')[-1]
+    return f'rostros/{instance.ci}/perfil.{ext}'
 
 
 class Residente(models.Model):
@@ -77,6 +84,15 @@ class Residente(models.Model):
         verbose_name="Estado"
     )
     
+    # Foto de perfil para reconocimiento facial
+    foto_perfil = models.ImageField(
+        upload_to=residente_foto_path,
+        verbose_name="Foto de Perfil",
+        null=True,
+        blank=True,
+        help_text="Foto del residente para reconocimiento facial (formato JPG/PNG)"
+    )
+    
     # Relación con el usuario (opcional)
     usuario = models.OneToOneField(
         'users.CustomUser', 
@@ -136,12 +152,19 @@ class Residente(models.Model):
         return False
     
     def puede_acceder(self):
-        """Verifica si el residente puede acceder al condominio"""
-        return (
-            self.usuario and 
-            self.usuario.is_active and 
-            self.estado == 'activo'
-        )
+        """
+        Verifica si el residente puede acceder al condominio.
+        
+        Lógica:
+        - Si tiene usuario vinculado: debe estar activo (usuario.is_active) y estado='activo'
+        - Si NO tiene usuario: solo verifica estado='activo'
+        """
+        if self.usuario:
+            # Residente con cuenta de usuario: ambas condiciones
+            return self.usuario.is_active and self.estado == 'activo'
+        else:
+            # Residente sin cuenta de usuario: solo estado del residente
+            return self.estado == 'activo'
         
     def get_unidad(self):
         """

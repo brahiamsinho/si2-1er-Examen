@@ -20,6 +20,9 @@ class ResidenteSerializer(serializers.ModelSerializer):
     # Campo para unidad habitacional (usando el código)
     unidad_habitacional = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     
+    # URL de la foto de perfil
+    foto_perfil = serializers.ImageField(required=False, allow_null=True)
+    
     class Meta:
         model = Residente
         fields = [
@@ -35,6 +38,7 @@ class ResidenteSerializer(serializers.ModelSerializer):
             'tipo',
             'fecha_ingreso',
             'estado',
+            'foto_perfil',
             'nombre_completo',
             'puede_acceder',
             'estado_usuario',
@@ -101,6 +105,9 @@ class ResidenteCreateSerializer(serializers.ModelSerializer):
     # Campo para unidad habitacional (usando el código)
     unidad_habitacional = serializers.CharField(required=False, allow_blank=True)
     
+    # Campo para foto de perfil
+    foto_perfil = serializers.ImageField(required=False, allow_null=True)
+    
     class Meta:
         model = Residente
         fields = [
@@ -112,7 +119,8 @@ class ResidenteCreateSerializer(serializers.ModelSerializer):
             'unidad_habitacional',
             'tipo',
             'fecha_ingreso',
-            'estado'
+            'estado',
+            'foto_perfil'
         ]
     
     def validate_email(self, value):
@@ -163,6 +171,9 @@ class ResidenteUpdateSerializer(serializers.ModelSerializer):
     # Campo para unidad habitacional (usando el código)
     unidad_habitacional = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     
+    # Campo para foto de perfil
+    foto_perfil = serializers.ImageField(required=False, allow_null=True)
+    
     class Meta:
         model = Residente
         fields = [
@@ -174,7 +185,8 @@ class ResidenteUpdateSerializer(serializers.ModelSerializer):
             'unidad_habitacional',
             'tipo',
             'fecha_ingreso',
-            'estado'
+            'estado',
+            'foto_perfil'
         ]
     
     def validate_email(self, value):

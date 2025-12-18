@@ -23,30 +23,30 @@ interface FiltersProps {
 }
 
 export function Filters({ filters, onFiltersChange }: FiltersProps) {
-  const { residentes, cargarResidentes } = useResidentes();
-  const { unidades, loadUnidades } = useUnidades();
+  const { data: residentesData, loadData: loadResidentes } = useResidentes();
+  const { data: unidadesData, loadData: loadUnidades } = useUnidades();
 
   useEffect(() => {
-    cargarResidentes();
+    loadResidentes();
     loadUnidades();
-  }, [cargarResidentes, loadUnidades]);
+  }, [loadResidentes, loadUnidades]);
 
   const handleSearchChange = (value: string) => {
     onFiltersChange({ ...filters, search: value, page: 1 });
   };
 
   const handleTipoChange = (value: string) => {
-    onFiltersChange({ ...filters, tipo: value as any, page: 1 });
+    onFiltersChange({ ...filters, tipo: value === "all" ? "" : (value as any), page: 1 });
   };
 
   const handleEstadoChange = (value: string) => {
-    onFiltersChange({ ...filters, estado: value as any, page: 1 });
+    onFiltersChange({ ...filters, estado: value === "all" ? "" : (value as any), page: 1 });
   };
 
   const handleResidenteChange = (value: string) => {
     onFiltersChange({
       ...filters,
-      residente: value ? Number(value) : "",
+      residente: value === "all" ? "" : Number(value),
       page: 1,
     });
   };
@@ -54,7 +54,7 @@ export function Filters({ filters, onFiltersChange }: FiltersProps) {
   const handleUnidadChange = (value: string) => {
     onFiltersChange({
       ...filters,
-      unidad: value ? Number(value) : "",
+      unidad: value === "all" ? "" : Number(value),
       page: 1,
     });
   };
@@ -91,12 +91,12 @@ export function Filters({ filters, onFiltersChange }: FiltersProps) {
         </div>
 
         {/* Tipo */}
-        <Select value={filters.tipo || ""} onValueChange={handleTipoChange}>
+        <Select value={filters.tipo || "all"} onValueChange={handleTipoChange}>
           <SelectTrigger>
             <SelectValue placeholder="Todos los tipos" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos los tipos</SelectItem>
+            <SelectItem value="all">Todos los tipos</SelectItem>
             {TIPOS_VEHICULO.map((tipo) => (
               <SelectItem key={tipo.value} value={tipo.value}>
                 {tipo.label}
@@ -106,12 +106,12 @@ export function Filters({ filters, onFiltersChange }: FiltersProps) {
         </Select>
 
         {/* Estado */}
-        <Select value={filters.estado || ""} onValueChange={handleEstadoChange}>
+        <Select value={filters.estado || "all"} onValueChange={handleEstadoChange}>
           <SelectTrigger>
             <SelectValue placeholder="Todos los estados" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos los estados</SelectItem>
+            <SelectItem value="all">Todos los estados</SelectItem>
             {ESTADOS_VEHICULO.map((estado) => (
               <SelectItem key={estado.value} value={estado.value}>
                 {estado.label}
@@ -122,15 +122,15 @@ export function Filters({ filters, onFiltersChange }: FiltersProps) {
 
         {/* Residente */}
         <Select
-          value={filters.residente ? String(filters.residente) : ""}
+          value={filters.residente ? String(filters.residente) : "all"}
           onValueChange={handleResidenteChange}
         >
           <SelectTrigger>
             <SelectValue placeholder="Todos los residentes" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos los residentes</SelectItem>
-            {residentes.map((residente) => (
+            <SelectItem value="all">Todos los residentes</SelectItem>
+            {(residentesData?.results || []).map((residente) => (
               <SelectItem key={residente.id} value={String(residente.id)}>
                 {residente.nombre} {residente.apellido}
               </SelectItem>
@@ -140,15 +140,15 @@ export function Filters({ filters, onFiltersChange }: FiltersProps) {
 
         {/* Unidad */}
         <Select
-          value={filters.unidad ? String(filters.unidad) : ""}
+          value={filters.unidad ? String(filters.unidad) : "all"}
           onValueChange={handleUnidadChange}
         >
           <SelectTrigger>
             <SelectValue placeholder="Todas las unidades" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todas las unidades</SelectItem>
-            {unidades.map((unidad) => (
+            <SelectItem value="all">Todas las unidades</SelectItem>
+            {(unidadesData?.results || []).map((unidad) => (
               <SelectItem key={unidad.id} value={String(unidad.id)}>
                 {unidad.codigo}
               </SelectItem>

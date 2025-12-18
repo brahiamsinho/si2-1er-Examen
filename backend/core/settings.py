@@ -154,6 +154,7 @@ INSTALLED_APPS = [
     "pagos",  # Módulo de pagos y expensas
     "vehiculos",  # Módulo de vehículos y reconocimiento de placas
     "multas",  # Módulo de multas y sanciones
+    "mantenimiento",  # Módulo de gestión de mantenimiento
 ]
 
 AUTH_USER_MODEL = "users.CustomUser"
@@ -391,3 +392,26 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 # Configuración de archivos estáticos
 STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+
+# ====== CONFIGURACIÓN DE OCR (Tesseract) ======
+# Región para validación de placas (BOLIVIA, ARGENTINA, etc.)
+OCR_REGION = os.getenv("OCR_REGION", "BOLIVIA")
+
+# Ancho objetivo para redimensionar imágenes (px)
+OCR_TARGET_WIDTH = int(os.getenv("OCR_TARGET_WIDTH", "400"))
+
+# Confianza mínima para aceptar resultado (0.0 - 1.0)
+OCR_MIN_CONFIDENCE = float(os.getenv("OCR_MIN_CONFIDENCE", "0.7"))
+
+# Umbral de confianza para fragmentos (0-100)
+OCR_FRAGMENT_THRESHOLD = int(os.getenv("OCR_FRAGMENT_THRESHOLD", "20"))
+
+# Modos PSM de Tesseract a probar (separados por coma)
+OCR_PSM_MODES_STR = os.getenv("OCR_PSM_MODES", "7,8,13,6")
+OCR_PSM_MODES = [int(mode.strip()) for mode in OCR_PSM_MODES_STR.split(",")]
+
+# Caracteres permitidos en placas
+OCR_CHARACTER_WHITELIST = os.getenv(
+    "OCR_CHARACTER_WHITELIST", 
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+)

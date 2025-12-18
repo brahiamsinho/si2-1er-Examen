@@ -42,10 +42,11 @@ class Vehiculo(models.Model):
         ('suspendido', 'Suspendido'),
     ]
     
-    # Validador de placa boliviana (formato: ABC-1234 o ABC1234)
+    # Validador de placa boliviana (formato: 1234ABC o 1234-ABC)
     placa_validator = RegexValidator(
-        regex=r'^[A-Z]{3}-?\d{4}$',
-        message='Formato de placa inválido. Use: ABC-1234 o ABC1234'
+        regex=r'^\d{4}[-\s]?[A-Z]{3}$',
+        message='Formato de placa inválido. Use: 1234ABC o 1234-ABC (ej: 1852PHD)',
+        flags=0
     )
     
     # Información del vehículo
@@ -53,7 +54,7 @@ class Vehiculo(models.Model):
         max_length=10,
         unique=True,
         validators=[placa_validator],
-        help_text='Placa del vehículo (ej: ABC-1234)'
+        help_text='Placa del vehículo (formato boliviano: 1852PHD)'
     )
     tipo = models.CharField(
         max_length=20,
