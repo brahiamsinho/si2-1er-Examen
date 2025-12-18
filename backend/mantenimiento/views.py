@@ -19,6 +19,8 @@ from .serializers import (
     AsignarTareaSerializer,
     CompletarTareaSerializer,
     CancelarTareaSerializer,
+    ReportarIncidenciaSerializer,
+    MisIncidenciasSerializer,
 )
 from personal.models import Personal
 
@@ -31,11 +33,12 @@ class TareaMantenimientoViewSet(viewsets.ModelViewSet):
     queryset = TareaMantenimiento.objects.select_related(
         'personal_asignado',
         'area_comun',
-        'creado_por'
+        'creado_por',
+        'reportado_por_residente'
     ).prefetch_related('registros', 'materiales')
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['tipo', 'estado', 'prioridad', 'personal_asignado', 'area_comun']
+    filterset_fields = ['tipo', 'estado', 'prioridad', 'personal_asignado', 'area_comun', 'es_incidencia', 'categoria_incidencia']
     search_fields = ['titulo', 'descripcion', 'ubicacion_especifica']
     ordering_fields = ['fecha_creacion', 'fecha_limite', 'prioridad', 'estado']
     ordering = ['-fecha_creacion']
@@ -319,3 +322,119 @@ class MaterialInsumoViewSet(viewsets.ModelViewSet):
     search_fields = ['nombre', 'descripcion', 'proveedor']
     ordering_fields = ['fecha_uso', 'costo_total']
     ordering = ['-fecha_uso']
+
+
+class IncidenciaViewSet(viewsets.GenericViewSet):
+    """
+    ViewSet para que residentes reporten y consulten incidencias desde la app móvil.
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def get_serializer_class(self):
+        if self.action == 'reportar':
+            return ReportarIncidenciaSerializer
+        return MisIncidenciasSerializer
+    
+    def get_queryset(self):
+        """Retorna solo las incidencias del residente actual"""
+        user = self.request.user
+        if hasattr(user, 'residente'):
+            return TareaMantenimiento.objects.filter(
+                es_incidencia=True,
+                reportado_por_residente=user.residente
+            ).order_by('-fecha_creacion')
+        return TareaMantenimiento.objects.none()
+    
+    @action(detail=False, methods=['post'])
+    def reportar(self, request):
+        """
+        Reportar una nueva incidencia.
+        Body:
+        {
+            "titulo": "Fuga de agua en pasillo",
+            "descripcion": "Hay una fuga de agua en el pasillo del 2do piso",
+            "categoria_incidencia": "plomeria",
+            "ubicacion_especifica": "Pasillo 2do piso, cerca del ascensor",
+            "imagen_base64": "data:image/jpeg;base64,/9j/4AAQ..."  // opcional
+        }
+        """
+        serializer = ReportarIncidenciaSerializer(
+            data=request.data,
+            context={'request': request}
+        )
+        
+        if serializer.is_valid():
+            incidencia = serializer.save()
+            return Response({
+                'success': True,
+                'message': 'Incidencia reportada correctamente. El equipo de mantenimiento será notificado.',
+                'data': MisIncidenciasSerializer(incidencia, context={'request': request}).data
+            }, status=status.HTTP_201_CREATED)
+        
+        return Response({
+            'success': False,
+            'error': serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=False, methods=['get'])
+    def mis_incidencias(self, request):
+        """
+        Obtener las incidencias reportadas por el residente actual.
+        """
+        queryset = self.get_queryset()
+        
+        # Filtros opcionales
+        estado = request.query_params.get('estado')
+        categoria = request.query_params.get('categoria')
+        
+        if estado:
+            queryset = queryset.filter(estado=estado)
+        if categoria:
+            queryset = queryset.filter(categoria_incidencia=categoria)
+        
+        serializer = MisIncidenciasSerializer(
+            queryset,
+            many=True,
+            context={'request': request}
+        )
+        
+        return Response({
+            'success': True,
+            'count': queryset.count(),
+            'results': serializer.data
+        })
+    
+    @action(detail=True, methods=['get'])
+    def detalle(self, request, pk=None):
+        """
+        Obtener detalle de una incidencia específica.
+        """
+        try:
+            incidencia = self.get_queryset().get(pk=pk)
+            serializer = MisIncidenciasSerializer(
+                incidencia,
+                context={'request': request}
+            )
+            return Response({
+                'success': True,
+                'data': serializer.data
+            })
+        except TareaMantenimiento.DoesNotExist:
+            return Response({
+                'success': False,
+                'error': 'Incidencia no encontrada'
+            }, status=status.HTTP_404_NOT_FOUND)
+    
+    @action(detail=False, methods=['get'])
+    def categorias(self, request):
+        """
+        Obtener lista de categorías disponibles para reportar incidencias.
+        """
+        categorias = [
+            {'value': choice[0], 'label': choice[1]}
+            for choice in TareaMantenimiento.CATEGORIA_INCIDENCIA_CHOICES
+        ]
+        return Response({
+            'success': True,
+            'categorias': categorias
+        })

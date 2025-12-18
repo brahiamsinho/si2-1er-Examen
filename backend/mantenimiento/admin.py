@@ -33,6 +33,7 @@ class TareaMantenimientoAdmin(admin.ModelAdmin):
         'tipo_badge',
         'prioridad_badge',
         'estado_badge',
+        'es_incidencia_badge',
         'personal_asignado',
         'fecha_limite',
         'vencida_badge',
@@ -43,6 +44,8 @@ class TareaMantenimientoAdmin(admin.ModelAdmin):
         'tipo',
         'estado',
         'prioridad',
+        'es_incidencia',
+        'categoria_incidencia',
         'personal_asignado',
         'area_comun',
         'fecha_creacion',
@@ -53,6 +56,7 @@ class TareaMantenimientoAdmin(admin.ModelAdmin):
         'ubicacion_especifica',
         'personal_asignado__nombre',
         'personal_asignado__apellido_paterno',
+        'reportado_por_residente__nombre',
     ]
     readonly_fields = [
         'fecha_creacion',
@@ -64,6 +68,7 @@ class TareaMantenimientoAdmin(admin.ModelAdmin):
         'dias_restantes',
         'desviacion_presupuesto',
         'porcentaje_desviacion',
+        'imagen_preview',
     ]
     fieldsets = (
         ('Información Básica', {
@@ -74,6 +79,16 @@ class TareaMantenimientoAdmin(admin.ModelAdmin):
                 'prioridad',
                 'estado',
             )
+        }),
+        ('Incidencia (si fue reportada por residente)', {
+            'fields': (
+                'es_incidencia',
+                'categoria_incidencia',
+                'reportado_por_residente',
+                'imagen_incidencia',
+                'imagen_preview',
+            ),
+            'classes': ('collapse',),
         }),
         ('Asignación', {
             'fields': (
@@ -178,6 +193,23 @@ class TareaMantenimientoAdmin(admin.ModelAdmin):
             '<span style="color: #28a745;">OK</span>'
         )
     vencida_badge.short_description = 'Vencimiento'
+    
+    def es_incidencia_badge(self, obj):
+        if obj.es_incidencia:
+            return format_html(
+                '<span style="background-color: #ff5722; color: white; padding: 3px 10px; border-radius: 3px;">📱 Móvil</span>'
+            )
+        return format_html('<span style="color: #6c757d;">-</span>')
+    es_incidencia_badge.short_description = 'Origen'
+    
+    def imagen_preview(self, obj):
+        if obj.imagen_incidencia:
+            return format_html(
+                '<img src="{}" style="max-width: 300px; max-height: 200px; border-radius: 8px;"/>',
+                obj.imagen_incidencia.url
+            )
+        return "Sin imagen"
+    imagen_preview.short_description = 'Vista previa de imagen'
     
     def save_model(self, request, obj, form, change):
         if not change:  # Nueva tarea

@@ -7,6 +7,22 @@ export type EstadoTarea = 'pendiente' | 'asignada' | 'en_progreso' | 'completada
 export type PrioridadTarea = 'baja' | 'media' | 'alta' | 'critica';
 export type TipoAccionRegistro = 'creacion' | 'asignacion' | 'inicio' | 'progreso' | 'pausa' | 'completado' | 'cancelado' | 'observacion';
 
+// Categorías de incidencias reportadas desde el móvil
+export type CategoriaIncidencia = 
+  | 'plomeria' 
+  | 'electricidad' 
+  | 'cerrajeria' 
+  | 'pintura' 
+  | 'jardineria' 
+  | 'limpieza' 
+  | 'seguridad' 
+  | 'ascensor' 
+  | 'piscina' 
+  | 'gimnasio' 
+  | 'estacionamiento' 
+  | 'areas_comunes' 
+  | 'otro';
+
 export interface Personal {
   id: number;
   nombre: string;
@@ -78,6 +94,14 @@ export interface TareaMantenimiento {
   
   // Observaciones
   observaciones?: string;
+  
+  // Campos de incidencia (reportada desde móvil)
+  es_incidencia?: boolean;
+  categoria_incidencia?: CategoriaIncidencia | null;
+  categoria_incidencia_display?: string;
+  imagen_incidencia?: string | null;
+  reportado_por_residente?: number | null;
+  reportado_por_residente_nombre?: string;
   
   // Propiedades calculadas (del backend)
   esta_vencida?: boolean;
@@ -166,5 +190,6 @@ export interface MantenimientoFilters {
   fecha_limite_desde?: string;
   fecha_limite_hasta?: string;
   vencidas?: boolean;
+  es_incidencia?: boolean | 'all';
   ordering?: string;
 }

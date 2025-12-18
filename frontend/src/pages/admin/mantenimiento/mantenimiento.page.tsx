@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 import AdminLayout from '@/app/layout/admin-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Wrench, AlertTriangle, Clock } from 'lucide-react';
+import { Plus, Wrench, AlertTriangle, Clock, Smartphone } from 'lucide-react';
 import { useMantenimiento } from '@/hooks/use-mantenimiento';
 import { Filters } from './components/filters';
 import { TareasTable } from './components/table';
@@ -84,7 +84,7 @@ export default function MantenimientoPage() {
           </Button>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Pendientes</CardTitle>
@@ -115,6 +115,19 @@ export default function MantenimientoPage() {
             <CardContent>
               <div className="text-2xl font-bold">{tareasEnProgreso}</div>
               <p className="text-xs text-muted-foreground">En ejecución</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-orange-200 bg-orange-50 dark:bg-orange-950/20">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Incidencias Móvil</CardTitle>
+              <Smartphone className="h-4 w-4 text-orange-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-orange-600">
+                {data?.results?.filter(t => t.es_incidencia).length || 0}
+              </div>
+              <p className="text-xs text-muted-foreground">Reportadas por residentes</p>
             </CardContent>
           </Card>
         </div>

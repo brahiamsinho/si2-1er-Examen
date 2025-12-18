@@ -6,6 +6,7 @@ import 'notificaciones_screen.dart';
 import 'configuracion_screen.dart';
 import 'finanzas_screen.dart';
 import 'multas_screen.dart';
+import 'mis_incidencias_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -426,6 +427,71 @@ class _HomeScreenState extends State<HomeScreen> {
                                     const SizedBox(height: 4),
                                     Text(
                                       'Revisa tus multas, infracciones y estado de pago',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Icon(
+                                Icons.arrow_forward_ios,
+                                color: Colors.grey[400],
+                                size: 16,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    // Botón de reportar incidencias
+                    Card(
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const MisIncidenciasScreen(),
+                            ),
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(8),
+                        child: Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.deepOrange[100],
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Icon(
+                                  Icons.report_problem,
+                                  color: Colors.deepOrange[600],
+                                  size: 24,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Reportar Incidencias',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.grey[800],
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Reporta problemas de plomería, electricidad, limpieza y más',
                                       style: TextStyle(
                                         fontSize: 14,
                                         color: Colors.grey[600],

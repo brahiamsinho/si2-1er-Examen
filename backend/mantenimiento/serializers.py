@@ -158,9 +158,16 @@ class TareaMantenimientoListSerializer(serializers.ModelSerializer):
     estado_display = serializers.CharField(source='get_estado_display', read_only=True)
     prioridad_display = serializers.CharField(source='get_prioridad_display', read_only=True)
     personal_asignado_nombre = serializers.SerializerMethodField()
+    personal_asignado_detalle = PersonalSerializer(source='personal_asignado', read_only=True)
     area_comun_nombre = serializers.SerializerMethodField()
     esta_vencida = serializers.BooleanField(read_only=True)
     dias_restantes = serializers.IntegerField(read_only=True)
+    # Campos de incidencia
+    categoria_incidencia_display = serializers.CharField(
+        source='get_categoria_incidencia_display', 
+        read_only=True
+    )
+    reportado_por_residente_nombre = serializers.SerializerMethodField()
     
     class Meta:
         model = TareaMantenimiento
@@ -175,6 +182,7 @@ class TareaMantenimientoListSerializer(serializers.ModelSerializer):
             'estado_display',
             'personal_asignado',
             'personal_asignado_nombre',
+            'personal_asignado_detalle',
             'area_comun',
             'area_comun_nombre',
             'ubicacion_especifica',
@@ -184,6 +192,13 @@ class TareaMantenimientoListSerializer(serializers.ModelSerializer):
             'esta_vencida',
             'dias_restantes',
             'fecha_creacion',
+            # Campos de incidencia
+            'es_incidencia',
+            'categoria_incidencia',
+            'categoria_incidencia_display',
+            'imagen_incidencia',
+            'reportado_por_residente',
+            'reportado_por_residente_nombre',
         ]
     
     def get_personal_asignado_nombre(self, obj):
@@ -194,6 +209,11 @@ class TareaMantenimientoListSerializer(serializers.ModelSerializer):
     def get_area_comun_nombre(self, obj):
         if obj.area_comun:
             return obj.area_comun.nombre
+        return None
+    
+    def get_reportado_por_residente_nombre(self, obj):
+        if obj.reportado_por_residente:
+            return obj.reportado_por_residente.nombre_completo
         return None
 
 
@@ -231,3 +251,178 @@ class CancelarTareaSerializer(serializers.Serializer):
         required=True,
         allow_blank=False
     )
+
+
+class ReportarIncidenciaSerializer(serializers.ModelSerializer):
+    """
+    Serializer para que residentes reporten incidencias desde la app móvil.
+    Crea automáticamente una tarea de mantenimiento tipo 'correctivo'.
+    """
+    imagen_base64 = serializers.CharField(
+        write_only=True,
+        required=False,
+        allow_blank=True,
+        help_text='Imagen en formato base64 (data:image/...;base64,...)'
+    )
+    categoria_display = serializers.CharField(
+        source='get_categoria_incidencia_display',
+        read_only=True
+    )
+    estado_display = serializers.CharField(
+        source='get_estado_display',
+        read_only=True
+    )
+    residente_nombre = serializers.SerializerMethodField()
+    imagen_url = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = TareaMantenimiento
+        fields = [
+            'id',
+            'titulo',
+            'descripcion',
+            'categoria_incidencia',
+            'categoria_display',
+            'imagen_base64',
+            'imagen_incidencia',
+            'imagen_url',
+            'ubicacion_especifica',
+            'estado',
+            'estado_display',
+            'prioridad',
+            'fecha_creacion',
+            'residente_nombre',
+        ]
+        read_only_fields = [
+            'id',
+            'estado',
+            'estado_display',
+            'prioridad',
+            'fecha_creacion',
+            'imagen_incidencia',
+            'residente_nombre',
+        ]
+    
+    def get_residente_nombre(self, obj):
+        if obj.reportado_por_residente:
+            return obj.reportado_por_residente.nombre_completo
+        return None
+    
+    def get_imagen_url(self, obj):
+        if obj.imagen_incidencia:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.imagen_incidencia.url)
+            return obj.imagen_incidencia.url
+        return None
+    
+    def validate_categoria_incidencia(self, value):
+        categorias_validas = [c[0] for c in TareaMantenimiento.CATEGORIA_INCIDENCIA_CHOICES]
+        if value not in categorias_validas:
+            raise serializers.ValidationError(
+                f"Categoría inválida. Opciones: {', '.join(categorias_validas)}"
+            )
+        return value
+    
+    def create(self, validated_data):
+        import base64
+        from django.core.files.base import ContentFile
+        from django.utils import timezone
+        
+        # Extraer imagen base64 si existe
+        imagen_base64 = validated_data.pop('imagen_base64', None)
+        
+        # Obtener residente del contexto
+        request = self.context.get('request')
+        residente = None
+        if request and hasattr(request.user, 'residente'):
+            residente = request.user.residente
+        
+        # Configurar campos automáticos
+        validated_data['tipo'] = 'correctivo'
+        validated_data['es_incidencia'] = True
+        validated_data['reportado_por_residente'] = residente
+        validated_data['creado_por'] = request.user if request else None
+        validated_data['prioridad'] = 'media'  # Prioridad por defecto
+        validated_data['fecha_limite'] = timezone.now().date() + timezone.timedelta(days=7)
+        
+        # Crear la tarea
+        tarea = TareaMantenimiento.objects.create(**validated_data)
+        
+        # Procesar imagen base64 si existe
+        if imagen_base64:
+            try:
+                # Remover prefijo data:image/...;base64,
+                if ';base64,' in imagen_base64:
+                    format_part, imgstr = imagen_base64.split(';base64,')
+                    ext = format_part.split('/')[-1]
+                    if ext not in ['jpeg', 'jpg', 'png', 'gif']:
+                        ext = 'jpg'
+                else:
+                    imgstr = imagen_base64
+                    ext = 'jpg'
+                
+                # Decodificar y guardar
+                data = base64.b64decode(imgstr)
+                filename = f'incidencia_{tarea.id}_{timezone.now().strftime("%Y%m%d_%H%M%S")}.{ext}'
+                tarea.imagen_incidencia.save(filename, ContentFile(data), save=True)
+            except Exception as e:
+                # Si falla la imagen, no bloquear la creación
+                pass
+        
+        # Crear registro de creación
+        from .models import RegistroMantenimiento
+        RegistroMantenimiento.objects.create(
+            tarea=tarea,
+            tipo_accion='creacion',
+            descripcion=f'Incidencia reportada por residente: {tarea.titulo}',
+            realizado_por=request.user if request else None
+        )
+        
+        return tarea
+
+
+class MisIncidenciasSerializer(serializers.ModelSerializer):
+    """
+    Serializer para listar las incidencias reportadas por un residente.
+    """
+    categoria_display = serializers.CharField(
+        source='get_categoria_incidencia_display',
+        read_only=True
+    )
+    estado_display = serializers.CharField(
+        source='get_estado_display',
+        read_only=True
+    )
+    prioridad_display = serializers.CharField(
+        source='get_prioridad_display',
+        read_only=True
+    )
+    imagen_url = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = TareaMantenimiento
+        fields = [
+            'id',
+            'titulo',
+            'descripcion',
+            'categoria_incidencia',
+            'categoria_display',
+            'estado',
+            'estado_display',
+            'prioridad',
+            'prioridad_display',
+            'ubicacion_especifica',
+            'fecha_creacion',
+            'fecha_limite',
+            'imagen_url',
+            'observaciones',
+        ]
+    
+    def get_imagen_url(self, obj):
+        if obj.imagen_incidencia:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.imagen_incidencia.url)
+            return obj.imagen_incidencia.url
+        return None

@@ -58,6 +58,23 @@ class TareaMantenimiento(models.Model):
         ('limpieza', 'Limpieza Especial'),
     ]
     
+    # Categorías para reportes de incidencias de residentes
+    CATEGORIA_INCIDENCIA_CHOICES = [
+        ('plomeria', 'Plomería'),
+        ('electricidad', 'Electricidad'),
+        ('cerrajeria', 'Cerrajería'),
+        ('pintura', 'Pintura'),
+        ('jardineria', 'Jardinería'),
+        ('limpieza', 'Limpieza'),
+        ('seguridad', 'Seguridad'),
+        ('ascensor', 'Ascensor'),
+        ('piscina', 'Piscina'),
+        ('gimnasio', 'Gimnasio'),
+        ('estacionamiento', 'Estacionamiento'),
+        ('areas_comunes', 'Áreas Comunes'),
+        ('otro', 'Otro'),
+    ]
+    
     ESTADO_CHOICES = [
         ('pendiente', 'Pendiente'),
         ('asignada', 'Asignada'),
@@ -85,6 +102,34 @@ class TareaMantenimiento(models.Model):
         max_length=20,
         choices=TIPO_CHOICES,
         help_text='Tipo de mantenimiento'
+    )
+    # Categoría de incidencia (para reportes de residentes)
+    categoria_incidencia = models.CharField(
+        max_length=20,
+        choices=CATEGORIA_INCIDENCIA_CHOICES,
+        blank=True,
+        null=True,
+        help_text='Categoría de la incidencia reportada por residente'
+    )
+    # Imagen de la incidencia
+    imagen_incidencia = models.ImageField(
+        upload_to='incidencias/%Y/%m/',
+        blank=True,
+        null=True,
+        help_text='Foto del problema reportado'
+    )
+    # Residente que reportó la incidencia
+    reportado_por_residente = models.ForeignKey(
+        'residentes.Residente',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='incidencias_reportadas',
+        help_text='Residente que reportó la incidencia'
+    )
+    es_incidencia = models.BooleanField(
+        default=False,
+        help_text='Indica si fue reportada por un residente desde la app móvil'
     )
     prioridad = models.CharField(
         max_length=10,

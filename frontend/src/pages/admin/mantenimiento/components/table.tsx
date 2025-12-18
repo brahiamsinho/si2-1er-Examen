@@ -18,8 +18,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Edit, MoreVertical, Trash2, UserPlus, Play, CheckCircle, XCircle } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Edit, MoreVertical, Trash2, UserPlus, Play, CheckCircle, XCircle, Smartphone, Image } from 'lucide-react';
 import type { TareaMantenimiento } from '@/types/mantenimiento';
+import { useState } from 'react';
 
 interface TareasTableProps {
   tareas: TareaMantenimiento[];
@@ -46,6 +53,22 @@ const PRIORIDAD_COLORS: Record<string, string> = {
   critica: 'bg-red-600',
 };
 
+const CATEGORIA_LABELS: Record<string, string> = {
+  plomeria: 'Plomería',
+  electricidad: 'Electricidad',
+  cerrajeria: 'Cerrajería',
+  pintura: 'Pintura',
+  jardineria: 'Jardinería',
+  limpieza: 'Limpieza',
+  seguridad: 'Seguridad',
+  ascensor: 'Ascensor',
+  piscina: 'Piscina',
+  gimnasio: 'Gimnasio',
+  estacionamiento: 'Estacionamiento',
+  areas_comunes: 'Áreas Comunes',
+  otro: 'Otro',
+};
+
 export function TareasTable({
   tareas,
   onEdit,
@@ -55,6 +78,8 @@ export function TareasTable({
   onCompletar,
   onCancelar,
 }: TareasTableProps) {
+  const [imagenSeleccionada, setImagenSeleccionada] = useState<string | null>(null);
+
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString('es-ES');
   };
@@ -67,17 +92,18 @@ export function TareasTable({
   };
 
   return (
+    <>
     <div className="rounded-md border">
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead>Título</TableHead>
+            <TableHead>Origen</TableHead>
             <TableHead>Tipo</TableHead>
             <TableHead>Estado</TableHead>
             <TableHead>Prioridad</TableHead>
             <TableHead>Personal</TableHead>
             <TableHead>Fecha Límite</TableHead>
-            <TableHead>Presupuesto</TableHead>
             <TableHead className="text-right">Acciones</TableHead>
           </TableRow>
         </TableHeader>
@@ -90,11 +116,43 @@ export function TareasTable({
             </TableRow>
           ) : (
             tareas.map((tarea) => (
-              <TableRow key={tarea.id}>
+              <TableRow key={tarea.id} className={tarea.es_incidencia ? 'bg-orange-50 dark:bg-orange-950/20' : ''}>
                 <TableCell className="font-medium">
-                  {tarea.titulo}
-                  {tarea.esta_vencida && (
-                    <Badge variant="destructive" className="ml-2">Vencida</Badge>
+                  <div className="flex flex-col gap-1">
+                    <span>{tarea.titulo}</span>
+                    {tarea.esta_vencida && (
+                      <Badge variant="destructive" className="w-fit">Vencida</Badge>
+                    )}
+                    {tarea.es_incidencia && tarea.categoria_incidencia && (
+                      <span className="text-xs text-muted-foreground">
+                        📁 {CATEGORIA_LABELS[tarea.categoria_incidencia] || tarea.categoria_incidencia}
+                      </span>
+                    )}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  {tarea.es_incidencia ? (
+                    <div className="flex flex-col gap-1">
+                      <Badge className="bg-orange-500 hover:bg-orange-600 w-fit">
+                        <Smartphone className="h-3 w-3 mr-1" />
+                        Incidencia Móvil
+                      </Badge>
+                      {tarea.imagen_incidencia && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 px-2 text-xs"
+                          onClick={() => setImagenSeleccionada(tarea.imagen_incidencia!)}
+                        >
+                          <Image className="h-3 w-3 mr-1" />
+                          Ver Foto
+                        </Button>
+                      )}
+                    </div>
+                  ) : (
+                    <Badge variant="outline" className="w-fit">
+                      Interno
+                    </Badge>
                   )}
                 </TableCell>
                 <TableCell className="capitalize">{tarea.tipo.replace('_', ' ')}</TableCell>
@@ -119,7 +177,6 @@ export function TareasTable({
                     </span>
                   )}
                 </TableCell>
-                <TableCell>{formatCurrency(tarea.presupuesto_estimado)}</TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -181,5 +238,27 @@ export function TareasTable({
         </TableBody>
       </Table>
     </div>
+
+    {/* Dialog para ver imagen de incidencia */}
+    <Dialog open={!!imagenSeleccionada} onOpenChange={() => setImagenSeleccionada(null)}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Image className="h-5 w-5" />
+            Foto de Incidencia
+          </DialogTitle>
+        </DialogHeader>
+        {imagenSeleccionada && (
+          <div className="flex justify-center">
+            <img
+              src={imagenSeleccionada}
+              alt="Imagen de incidencia"
+              className="max-h-[500px] rounded-lg object-contain"
+            />
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }

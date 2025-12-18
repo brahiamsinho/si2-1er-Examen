@@ -38,6 +38,12 @@ const PRIORIDADES: { value: PrioridadTarea | 'all'; label: string }[] = [
   { value: 'critica', label: 'Crítica' },
 ];
 
+const ORIGEN: { value: string; label: string }[] = [
+  { value: 'all', label: 'Todos los orígenes' },
+  { value: 'true', label: '📱 Incidencias Móvil' },
+  { value: 'false', label: 'Tareas Internas' },
+];
+
 export function Filters({ filters, onFilterChange }: FiltersProps) {
   const handleSearchChange = (value: string) => {
     onFilterChange({ ...filters, search: value });
@@ -55,8 +61,15 @@ export function Filters({ filters, onFilterChange }: FiltersProps) {
     onFilterChange({ ...filters, prioridad: value as PrioridadTarea | 'all' });
   };
 
+  const handleOrigenChange = (value: string) => {
+    let esIncidencia: boolean | undefined = undefined;
+    if (value === 'true') esIncidencia = true;
+    if (value === 'false') esIncidencia = false;
+    onFilterChange({ ...filters, es_incidencia: esIncidencia });
+  };
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
         <Input
@@ -110,6 +123,22 @@ export function Filters({ filters, onFilterChange }: FiltersProps) {
           {PRIORIDADES.map((prioridad) => (
             <SelectItem key={prioridad.value} value={prioridad.value}>
               {prioridad.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      <Select
+        value={filters.es_incidencia === true ? 'true' : filters.es_incidencia === false ? 'false' : 'all'}
+        onValueChange={handleOrigenChange}
+      >
+        <SelectTrigger>
+          <SelectValue placeholder="Origen" />
+        </SelectTrigger>
+        <SelectContent>
+          {ORIGEN.map((origen) => (
+            <SelectItem key={origen.value} value={origen.value}>
+              {origen.label}
             </SelectItem>
           ))}
         </SelectContent>
