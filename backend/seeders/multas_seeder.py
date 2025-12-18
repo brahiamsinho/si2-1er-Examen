@@ -66,23 +66,18 @@ class MultasSeeder(BaseSeeder):
         ],
     }
     
-    def should_run(self):
+    @classmethod
+    def should_run(cls):
         """Solo ejecutar si hay residentes y no hay multas"""
         residentes_count = Residente.objects.count()
-        multas_count = self.model.objects.count()
+        multas_count = Multa.objects.count()
         
         if residentes_count == 0:
-            self.stdout.write(
-                self.style.WARNING('⚠️  No hay residentes. Ejecuta el seeder de residentes primero.')
-            )
+            print('⚠️  No hay residentes. Ejecuta el seeder de residentes primero.')
             return False
         
         if multas_count > 0:
-            self.stdout.write(
-                self.style.WARNING(
-                    f'⚠️  Ya existen {multas_count} multas en la base de datos.'
-                )
-            )
+            print(f'⚠️  Ya existen {multas_count} multas en la base de datos.')
             return False
         
         return True
